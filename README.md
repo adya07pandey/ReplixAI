@@ -116,6 +116,39 @@ Email → Category → DB Extraction → Reply Generation → Monitoring
 git clone https://github.com/your-username/email-automation.git
 cd email-automation
 ```
+## Setup Instructions
+
+### 2. Create virtual environment
+
+```bash
+python -m venv venv
+source venv/bin/activate     # Mac/Linux
+venv\Scripts\activate        # Windows
+```
+
+### 3. Install Dependencies
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Create .env file
+```bash
+JWT_SECRET=your_secret
+JWT_ALGORITHM=HS256
+
+GOOGLE_CLIENT_ID=your_client_id
+GOOGLE_CLIENT_SECRET=your_client_secret
+GOOGLE_REDIRECT_URI=http://localhost:8000/auth/google/callback
+
+QDRANT_URL=your_qdrant_url
+QDRANT_API_KEY=your_api_key
+```
+## Authentication Flow
+- User logs in and a JWT token is generated
+- Token is stored in cookies
+- Each request reads the token from cookies
+- JWT is decoded to identify the organization
+
 ## API Endpoints
 
 ### Auth
