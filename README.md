@@ -1,4 +1,4 @@
-# AI Email Automation System
+# 🚀 AI Email Automation System
 
 An AI-powered multi-agent email automation system that integrates with Gmail to automatically read, classify, process, and respond to emails using intelligent workflows.
 
