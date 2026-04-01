@@ -13,3 +13,4 @@ qdrant_client==1.17.1
 Requests==2.33.1
 sentence_transformers==5.3.0
 SQLAlchemy==2.0.48
+psycopg2-binary
