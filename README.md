@@ -63,6 +63,7 @@ An AI-powered email automation platform that integrates with Gmail to automatica
 ---
 
 ## 📂 Project Structure
+```text 
 app/
 │── agents/ # AI agents (classification, extraction, reply)
 │── database/ # DB models & connection
@@ -70,7 +71,7 @@ app/
 │── workflows/ # LangGraph workflow
 │── services/ # WebSocket manager
 │── schemas/ # Pydantic schemas
-
+```
 
 ---
 
