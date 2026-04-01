@@ -1,4 +1,5 @@
 fastapi==0.135.3
+uvicorn[standard]
 fitz==0.0.1.dev2
 google_api_python_client==2.183.0
 langchain_groq==1.1.2
