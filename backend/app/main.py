@@ -9,7 +9,7 @@ from app.api.google_routes import router as google_router
 from app.api.dashboard_routes import router as dashboard_router
 from app.api.email_routes import poller
 import asyncio
-
+print("🚀 APP STARTING...")
 from dotenv import load_dotenv
 
 load_dotenv()
