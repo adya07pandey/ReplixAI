@@ -5,7 +5,7 @@ from app.database.db import get_db
 from app.database.models import Org
 from sqlalchemy.orm import Session
 import bcrypt
-import fitz
+import pymupdf
 from jose import jwt
 from datetime import datetime, timedelta
 import os
@@ -46,10 +46,10 @@ def create_access_token(data: dict):
 
 def extract_pdf_text(file_bytes):
     text = ""
-    pdf = fitz.open(stream=file_bytes, filetype="pdf")
+    pdf = pymupdf.open(stream=file_bytes, filetype="pdf")
     for page in pdf:
         text += page.get_text()
-
+        
     return text
 
 @router.post("/signup")
