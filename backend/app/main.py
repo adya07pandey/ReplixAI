@@ -9,6 +9,7 @@ from app.api.google_routes import router as google_router
 from app.api.dashboard_routes import router as dashboard_router
 from app.api.email_routes import poller
 import asyncio
+import os
 print("🚀 APP STARTING...")
 from dotenv import load_dotenv
 
@@ -25,7 +26,11 @@ app.add_middleware(
 )
 
 # Create tables
-Base.metadata.create_all(bind=engine)
+try:
+    Base.metadata.create_all(bind=engine)
+    print("✅ Database connected")
+except Exception as e:
+    print("❌ DB ERROR:", e)
 
 app.include_router(auth_router)
 app.include_router(google_router)
@@ -42,6 +47,19 @@ def root():
     return {"message": "FlowMind AI running"}
 
 
+
+if __name__ == "__main__":
+    import uvicorn
+
+    port = int(os.environ.get("PORT", 5000))  # Render gives PORT
+    print(f"🚀 Running on port {port}")
+
+    uvicorn.run(
+        "app.main:app",
+        host="0.0.0.0",
+        port=port,
+        reload=False
+    )
 
 # uvicorn app.main:app --host localhost --port 8000 --reload 
 # curl -X POST https://dominik-imprescriptible-kimberlee.ngrok-free.dev/emails/gmail/webhook ^
