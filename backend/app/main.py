@@ -1,3 +1,14 @@
+print("🚀 Starting import phase...")
+
+from fastapi import FastAPI
+
+print("✅ FastAPI imported")
+
+from app.database.db import engine
+print("✅ DB imported")
+
+from app.database.models import Base
+print("✅ Models imported")
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database.db import engine
