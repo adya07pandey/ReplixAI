@@ -33,9 +33,9 @@ app.include_router(email_router)
 app.include_router(logs_router)
 app.include_router(dashboard_router)
 
-@app.on_event("startup")
-async def start_poller():
-    asyncio.create_task(poller())
+# @app.on_event("startup")
+# async def start_poller():
+#     asyncio.create_task(poller())
 
 @app.get("/")
 def root():
