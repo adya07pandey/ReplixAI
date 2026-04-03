@@ -39,8 +39,8 @@ print("✅ DB imported")
 from app.database.models import Base
 print("✅ Models imported")
 
-# from fastapi.middleware.cors import CORSMiddleware
-# print("✅ cors imported")
+from fastapi.middleware.cors import CORSMiddleware
+print("✅ cors imported")
 # from app.api.auth_routes import router as auth_router
 # print("✅ router imported")
     # from app.api.email_routes import router as email_router
