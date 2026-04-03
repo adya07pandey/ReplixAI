@@ -4,23 +4,23 @@ try:
     from fastapi import FastAPI
     print("✅ FastAPI imported")
 
-    # from app.database.db import engine
-    # print("✅ DB imported")
+    from app.database.db import engine
+    print("✅ DB imported")
 
-    # from app.database.models import Base
-    # print("✅ Models imported")
+    from app.database.models import Base
+    print("✅ Models imported")
 
-    # from fastapi.middleware.cors import CORSMiddleware
-    # from app.api.auth_routes import router as auth_router
-    # from app.api.email_routes import router as email_router
-    # from app.api.logs_routes import router as logs_router
-    # from app.api.google_routes import router as google_router
-    # from app.api.dashboard_routes import router as dashboard_router
+    from fastapi.middleware.cors import CORSMiddleware
+    from app.api.auth_routes import router as auth_router
+    from app.api.email_routes import router as email_router
+    from app.api.logs_routes import router as logs_router
+    from app.api.google_routes import router as google_router
+    from app.api.dashboard_routes import router as dashboard_router
 
-    # from dotenv import load_dotenv
-    # import os
+    from dotenv import load_dotenv
+    import os
 
-    # load_dotenv()
+    load_dotenv()
 
     app = FastAPI(title="FlowMind AI")
 
