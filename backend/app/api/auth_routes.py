@@ -1,3 +1,5 @@
+import sys
+print("Python path:", sys.path)
 from fastapi import APIRouter, Form,File,UploadFile,Depends, HTTPException,Request
 from fastapi.responses import JSONResponse
 from app.schemas.org_schema import OrgLogin
