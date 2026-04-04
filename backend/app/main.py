@@ -41,7 +41,7 @@ print("✅ Models imported")
 
 from fastapi.middleware.cors import CORSMiddleware
 print("✅ cors imported")
-from app.api.auth_routes import router as auth_router
+from api.auth_routes import router as auth_router
 print("✅ router imported")
     # from app.api.email_routes import router as email_router
     # from app.api.logs_routes import router as logs_router
