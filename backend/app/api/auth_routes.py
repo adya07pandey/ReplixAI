@@ -7,7 +7,7 @@ from app.database.db import get_db
 from app.database.models import Org
 from sqlalchemy.orm import Session
 import bcrypt
-import pymupdf
+import fitz
 from jose import jwt
 from datetime import datetime, timedelta
 import os
@@ -48,7 +48,7 @@ def create_access_token(data: dict):
 
 def extract_pdf_text(file_bytes):
     text = ""
-    pdf = pymupdf.open(stream=file_bytes, filetype="pdf")
+    pdf = fitz.open(stream=file_bytes, filetype="pdf")
     for page in pdf:
         text += page.get_text()
         
