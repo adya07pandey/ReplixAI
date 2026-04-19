@@ -26,7 +26,7 @@ load_dotenv()
 app = FastAPI(title="FlowMind AI")
 
 origins = [
-    "https://replix-ai-one.vercel.app",  # 👈 your frontend URL
+    "https://replix-ai-one.vercel.app",  
 ]
 
 app.add_middleware(
