@@ -25,13 +25,17 @@ load_dotenv()
 
 app = FastAPI(title="FlowMind AI")
 
+origins = [
+    "https://replix-ai-one.vercel.app",  # 👈 your frontend URL
+]
+
 app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 print("🚀 Creating DB...")
 Base.metadata.create_all(bind=engine)
