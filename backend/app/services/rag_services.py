@@ -3,7 +3,7 @@ import uuid
 from qdrant_client import QdrantClient
 from qdrant_client.models import VectorParams, Distance, PointStruct
 
-from langchain.embeddings import HuggingFaceInferenceAPIEmbeddings
+from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
 
 # ✅ Use API-based embeddings (NO local model)
 embeddings_model = HuggingFaceInferenceAPIEmbeddings(

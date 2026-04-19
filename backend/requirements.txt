@@ -16,5 +16,5 @@ psycopg2-binary
 PyMuPDF==1.23.7
 psycopg2-binary
 python-multipart
-langchain
+langchain-community
 huggingface_hub
