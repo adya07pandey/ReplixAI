@@ -94,13 +94,13 @@ async def signup(
     })
 
     response.set_cookie(
-        key="access_token",
-        value=token,
-        httponly=True,
-        samesite="lax",
-        secure=False,   
-        path="/"
-    )
+    key="access_token",
+    value=token,
+    httponly=True,
+    samesite="none",  
+    secure=True,       
+    path="/"
+)
 
     return response
 
@@ -149,13 +149,13 @@ async def Login(
     })
 
     response.set_cookie(
-        key="access_token",
-        value=token,
-        httponly=True,
-        samesite="lax",
-        secure=False,   
-        path="/"
-    )
+    key="access_token",
+    value=token,
+    httponly=True,
+    samesite="none",  
+    secure=True,  
+    path="/"
+)
 
     return response
 
