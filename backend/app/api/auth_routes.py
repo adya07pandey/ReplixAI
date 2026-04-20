@@ -6,7 +6,6 @@ from app.schemas.org_schema import OrgLogin
 from app.database.db import get_db
 from app.database.models import Org
 from sqlalchemy.orm import Session
-import bcrypt
 import fitz
 from jose import jwt
 from datetime import datetime, timedelta
@@ -14,7 +13,9 @@ import os
 from fastapi.security import HTTPBearer
 from jose import jwt
 from app.services.rag_services import store_policy
+from passlib.context import CryptContext
 
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 SECRET_KEY = os.getenv("JWT_SECRET")
 ALGORITHM = os.getenv("JWT_ALGORITHM")
@@ -72,8 +73,7 @@ async def signup(
     if not password or len(password) < 8:
         raise HTTPException(status_code=400, detail="Password should have atleast 8 characters")
  
-    salt = bcrypt.gensalt(rounds=10)
-    password_hash = bcrypt.hashpw(password.encode(), salt).decode()
+    password_hash = pwd_context.hash(password)
 
     new_org = Org(
         orgname=orgname,
@@ -137,7 +137,7 @@ async def Login(
     if not existingOrg:
         raise HTTPException(status_code=400,detail="Invalid email")
     
-    if not bcrypt.checkpw(org.password.encode(), existingOrg.password.encode()):
+    if not pwd_context.verify(org.password, existingOrg.password):
         raise HTTPException(status_code=400, detail="Invalid password")
     
     token = create_access_token({

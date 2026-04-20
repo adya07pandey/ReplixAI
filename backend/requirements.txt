@@ -3,7 +3,7 @@ uvicorn[standard]
 google_api_python_client==2.183.0
 langchain_groq==1.1.2
 langgraph==1.1.4
-bcrypt==4.0.1
+passlib[bcrypt]
 protobuf==7.34.1
 pydantic==2.12.5
 python-dotenv==1.2.2
