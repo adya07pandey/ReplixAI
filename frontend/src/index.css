@@ -428,7 +428,7 @@ input:focus{
 .email-card p{
   display: flex;
   justify-content: flex-start;
-  align-items: center;
+  align-items: flex-start;
   text-align: left;
   margin: 0;
   padding: 0;
