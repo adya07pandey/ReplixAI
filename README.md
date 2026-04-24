@@ -62,6 +62,16 @@ All agents are orchestrated using LangGraph workflows.
 - Relational DB (Emails, Org, Requests)
 - Qdrant (Vector Database)
 
+### DevOps & Deployment
+- Docker (containerized backend services)
+- CI/CD Pipeline (automated build, test, and deployment)
+- Environment-based configuration using .env
+
+### Containerization & CI/CD
+- Containerized backend using Docker for consistent development and deployment
+- Built CI/CD pipeline for automated testing and deployment
+- Enabled scalable and reproducible environments across development and production
+
 ### Authentication and Security
 - JWT (JSON Web Tokens)
 - Cookies (Session management)
@@ -189,8 +199,9 @@ QDRANT_API_KEY=your_api_key
 
 ## Key Highlights
 
-- Multi-agent AI architecture  
-- Idempotent email processing  
-- Token auto-refresh for Gmail API  
-- Duplicate webhook protection  
-- Scalable backend design  
+- Multi-agent AI architecture using LangGraph
+- RAG-based response generation with vector search
+- Real-time email processing via webhooks and WebSockets
+- Scalable backend with Docker and CI/CD pipeline
+- Multi-tenant database design for structured workflows
+- Idempotent processing with duplicate webhook protection
