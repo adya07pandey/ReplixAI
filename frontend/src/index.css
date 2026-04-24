@@ -434,7 +434,7 @@ input:focus{
   padding: 0;
 }
 .a{
-  background: #1e1e2c;
+  /* background: #1e1e2c; */
   width: 10%;
   
 }
@@ -443,7 +443,7 @@ input:focus{
   width: 10%;
 }
 .b {
-  background: #f29f67;
+  /* background: #f29f67; */
   width:70%;
   display: block;          
   white-space: nowrap;     

@@ -27,6 +27,7 @@ app = FastAPI(title="FlowMind AI")
 
 origins = [
     "https://replix-ai-one.vercel.app",  
+    "http://localhost:5173"
 ]
 
 app.add_middleware(

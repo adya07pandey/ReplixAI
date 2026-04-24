@@ -186,16 +186,24 @@ def get_dashboard(
             func.date(Email.created_at) == yesterday_start
         ).scalar()
 
-    trend = 0
-    if yesterday > 0:
-        trend = int(((today - yesterday) / yesterday) * 100)
-        today_categories = db.query(
-    Email.category,
-    func.count(Email.id)
+    today_categories = db.query(
+        Email.category,
+        func.count(Email.id)
     ).filter(
         Email.org_id == org_id,
         func.date(Email.created_at) == today_start
     ).group_by(Email.category).all()
+
+    trend = 0
+    if yesterday > 0:
+        trend = int(((today - yesterday) / yesterday) * 100)
+        today_categories = db.query(
+        Email.category,
+        func.count(Email.id)
+        ).filter(
+            Email.org_id == org_id,
+            func.date(Email.created_at) == today_start
+        ).group_by(Email.category).all()
 
     yesterday_categories = db.query(
         Email.category,
@@ -213,7 +221,7 @@ def get_dashboard(
         cat = normalize_category(cat)
         prev = yesterday_map.get(cat, 0)
 
-        change = int(((count - prev) / prev) * 100) if prev > 0 else 100
+        change = int(((count - prev) / prev) * 100) if prev > 0 else (100 if count > 0 else 0)
 
         category_trend.append({
             "category": cat,
