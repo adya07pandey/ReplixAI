@@ -58,7 +58,6 @@ def store_policy(
 
     print(f"Stored {len(chunks)} chunks")
 
-
 def retrieve_context(
     db: Session,
     org_id: int,
@@ -68,12 +67,14 @@ def retrieve_context(
 
     query_embedding = embeddings_model.embed_query(query)
 
+    embedding_str = "[" + ",".join(map(str, query_embedding)) + "]"
+
     sql = text(
         """
         SELECT chunk_text
         FROM policy_embeddings
         WHERE org_id = :org_id
-        ORDER BY embedding <=> :embedding
+        ORDER BY embedding <=> CAST(:embedding AS vector)
         LIMIT :k
         """
     )
@@ -82,7 +83,7 @@ def retrieve_context(
         sql,
         {
             "org_id": org_id,
-            "embedding": query_embedding,
+            "embedding": embedding_str,
             "k": k
         }
     ).fetchall()
