@@ -121,7 +121,7 @@ async def settings(
 
     org.policy_text = policy_text
 
-    store_policy(org.id, policy_text)
+    store_policy(db, org.id, policy_text)
 
 
     db.commit()
