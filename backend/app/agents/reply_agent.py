@@ -59,8 +59,9 @@ def generate_reply(state, db):
 
     try:
         # 🔍 Retrieve context
+        # 🔍 Retrieve context
         query = f"{category} policy {body}"
-        context = retrieve_context(org_id, query)
+        context = retrieve_context(db, org_id, query)
 
         if not context:
             context = "No specific policy found. Provide a helpful response and ask for any missing details politely."
