@@ -1,9 +1,8 @@
 from app.services.rag_services import retrieve_context
-from app.schemas.email_schema import ReplySchema
 from app.database.models import Email
-from langchain_groq import ChatGroq
 from app.agents.monitor_agent import monitor_agent
-import json,re
+import json
+from app.services.structured_llm_services import reply_llm
 
 TONE_MAP = {
     "order_status": "reassuring, informative, and calm",
@@ -37,10 +36,6 @@ REPLY_PROMPT = """
 
 
 def generate_reply(state, db):
-    llm = ChatGroq(
-        model="llama-3.1-8b-instant",
-        temperature=0.4
-    )
 
     category = state["category"]
     subject = state["subject"]
@@ -58,9 +53,9 @@ def generate_reply(state, db):
     )
 
     try:
-        # 🔍 Retrieve context
+        
         query = f"{category} policy {body}"
-        context = retrieve_context(db,org_id, query)
+        context = retrieve_context(org_id, query)
 
         if not context:
             context = "No specific policy found. Provide a helpful response and ask for any missing details politely."
@@ -81,9 +76,8 @@ def generate_reply(state, db):
 
         tone = TONE_MAP.get(category, "polite and professional")
 
-        structured_llm = llm.with_structured_output(ReplySchema)
 
-        result = structured_llm.invoke(
+        result = reply_llm.invoke(
             f"""
             You are a professional customer support assistant.
 

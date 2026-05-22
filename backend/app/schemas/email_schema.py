@@ -2,7 +2,9 @@ from pydantic import BaseModel
 from datetime import datetime
 from enum import Enum
 import enum
- 
+from pydantic import BaseModel
+from typing import Optional
+
 
 class StatusEnum(str, Enum):
     pending = "pending"
@@ -45,3 +47,25 @@ class EmailResponse(BaseModel):
 class ReplySchema(BaseModel):
     reply_subject: str
     reply_body: str
+
+class UnifiedEmailSchema(BaseModel):
+
+    category: str
+
+    order_id: str | None = None
+
+    issue_type: str | None = None
+
+    amount: str | None = None
+
+    product_name: str | None = None
+
+    query: str | None = None
+
+    question: str | None = None
+
+    from_variant: str | None = None
+
+    to_variant: str | None = None
+
+    reason: str | None = None
