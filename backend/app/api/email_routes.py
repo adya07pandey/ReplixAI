@@ -241,10 +241,10 @@ async def process_gmail_event(email: str, history_id: str):
                 result = app.invoke({
                     "org_id": org.id,
                     "email_id": new_email.id,
-                    "email_body": email_body,
+                    "email_body": email_body.strip(),
                     "sender_name": sender_name,
                     "sender_email": sender_email,
-                    "subject": subject
+                    "subject": subject.strip()
                 })
 
                 end_time = time.perf_counter()

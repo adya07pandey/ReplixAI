@@ -1,8 +1,7 @@
 from typing import TypedDict, Optional, List
 from langgraph.graph import StateGraph, END
 from app.database.db import get_db
-# ✅ import your NEW agents
-from app.agents.email_agent import email_agent
+
 from app.agents.category_agent import category_agent
 from app.agents.db_agent import db_agent
 from app.agents.reply_agent import generate_reply
@@ -35,26 +34,24 @@ class WorkflowState(TypedDict, total=False):
     reply_subject: Optional[str]
     reply_body: Optional[str]
 
-    logs: Optional[List[dict]]   # ✅ updated (list instead of single log)
+    logs: Optional[List[dict]]
 
 
 workflow = StateGraph(WorkflowState)
 
 
 # ✅ Nodes
-workflow.add_node("email", with_db(email_agent))
 workflow.add_node("category", with_db(category_agent))
 workflow.add_node("db", with_db(db_agent))
 workflow.add_node("reply", with_db(generate_reply))
 workflow.add_node("monitor", with_db(monitor_agent))
 
 
-# ✅ Entry
-workflow.set_entry_point("email")
+# ✅ Entry Point
+workflow.set_entry_point("category")
 
 
 # ✅ Flow
-workflow.add_edge("email", "category")
 workflow.add_edge("category", "db")
 workflow.add_edge("db", "reply")
 workflow.add_edge("reply", "monitor")
