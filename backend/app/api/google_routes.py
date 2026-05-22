@@ -110,11 +110,11 @@ def google_callback(
     org.gmail_connected = True
     
     watch = start_gmail_watch(access_token)
-    print("WATCH RESPONSE:", watch)
+  
     org.gmail_history_id = watch["historyId"]
     expiry = datetime.utcnow() + timedelta(days=7)
     org.gmail_watch_expiry = expiry
-    db.commit() 
-    print("gmail connected")
-    return RedirectResponse("http://localhost:5173/dashboard")
+    db.commit()
+
+    return RedirectResponse("https://replix-ai-one.vercel.app/dashboard")
 

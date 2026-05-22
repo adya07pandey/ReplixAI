@@ -15,6 +15,7 @@ TONE_MAP = {
     "general": "friendly, helpful, and conversational",
     "others": "neutral, polite, and professional"
 }
+
 REPLY_PROMPT = """
     You are a professional customer support assistant.
     Write a reply email.

@@ -13,6 +13,7 @@ from jose import jwt
 from app.services.rag_services import store_policy
 from passlib.context import CryptContext
 
+
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 SECRET_KEY = os.getenv("JWT_SECRET")
@@ -81,6 +82,7 @@ async def signup(
     db.add(new_org)
     db.commit()
     db.refresh(new_org)
+
     token = create_access_token({
         "org_id": new_org.id,
         "email": new_org.email
@@ -108,19 +110,21 @@ async def settings(
     org_id: int = Depends(get_current_org),
     db: Session = Depends(get_db)
 ):
-    print(org_id)
+    
     org = db.query(Org).filter(Org.id == org_id).first()
+
     if not org:
         raise HTTPException(status_code=404, detail="Organization not found")
+    
     pdf_bytes = await policyfile.read()
     policy_text = extract_pdf_text(pdf_bytes)
 
     org.policy_text = policy_text
+
     store_policy(org.id, policy_text)
 
-    print(org_id)
+
     db.commit()
-    print("settings done")
     return {"message": "Settings saved"}
 
 
@@ -131,6 +135,7 @@ async def Login(
     db: Session = Depends(get_db)
 ):
     existingOrg = db.query(Org).filter(Org.email==org.email).first()
+    
     if not existingOrg:
         raise HTTPException(status_code=400,detail="Invalid email")
     
@@ -157,7 +162,6 @@ async def Login(
     return response
 
 
-from app.database.models import Org
 
 @router.get("/me")
 def get_current_user(

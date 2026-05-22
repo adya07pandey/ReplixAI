@@ -11,7 +11,7 @@ export const saveSettings = async (data) => {
     })
 }
 export const connectGoogle = () => {
-    window.location.href = "http://localhost:8000/auth/google"
+    window.location.href = "https://replixai-1.onrender.com/auth/google"
 }
 export const login = async(data) => {
     return api.post("/auth/login",data);
