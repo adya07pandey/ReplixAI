@@ -3,6 +3,7 @@ from app.database.models import Email
 from app.agents.monitor_agent import monitor_agent
 import json
 from app.services.structured_llm_services import reply_llm
+import time 
 
 TONE_MAP = {
     "order_status": "reassuring, informative, and calm",
@@ -15,28 +16,10 @@ TONE_MAP = {
     "others": "neutral, polite, and professional"
 }
 
-REPLY_PROMPT = """
-    You are a professional customer support assistant.
-    Write a reply email.
-    Tone: {tone}
-
-    Context:
-    {context}
-
-    Customer Email:
-    Subject: {subject}
-    Body: {body}
-
-    Extracted Details:
-    {json.dumps(extracted)}
-
-    Category: {category}
-
-    """
 
 
 def generate_reply(state, db):
-
+    start = time.perf_counter()
     category = state["category"]
     subject = state["subject"]
     body = state["email_body"]
@@ -44,13 +27,6 @@ def generate_reply(state, db):
     email_id = state["email_id"]
     extracted = state.get("extracted", {})
 
-    # 🧾 START LOG
-    state = monitor_agent(
-        state, db,
-        "reply_agent",
-        "start",
-        f"Generating reply for {category}"
-    )
 
     try:
         
@@ -60,19 +36,7 @@ def generate_reply(state, db):
         if not context:
             context = "No specific policy found. Provide a helpful response and ask for any missing details politely."
 
-            state = monitor_agent(
-                state, db,
-                "reply_agent",
-                "warning",
-                "No policy context found"
-            )
-        else:
-            state = monitor_agent(
-                state, db,
-                "reply_agent",
-                "info",
-                "Policy context retrieved"
-            )
+        
 
         tone = TONE_MAP.get(category, "polite and professional")
 
@@ -102,33 +66,16 @@ def generate_reply(state, db):
         state["reply_subject"] = result.reply_subject
         state["reply_body"] = result.reply_body
 
-        # 🧾 Log reply generated
-        state = monitor_agent(
-            state, db,
-            "reply_agent",
-            "success",
-            "Reply generated",
-            data={"subject": state["reply_subject"]}
-        )
-
     except Exception as e:
         print("❌ LLM failed:", str(e))
 
         state["reply_subject"] = f"Re: {subject}"
         state["reply_body"] = "Thank you for contacting us. We will get back to you shortly."
 
-        state = monitor_agent(
-            state, db,
-            "reply_agent",
-            "error",
-            f"LLM failed: {str(e)}"
-        )
+       
 
-    # ❗ DON'T return yet — let DB save fallback reply
-
-    # 💾 Save to DB
     try:
-        email = db.query(Email).filter(Email.id == email_id).first()
+        email = state["email_obj"]
 
         if email:
             email.reply_subject = state["reply_subject"]
@@ -137,21 +84,21 @@ def generate_reply(state, db):
 
             db.commit()
 
-            state = monitor_agent(
-                state, db,
-                "reply_agent",
+            monitor_agent(
                 "success",
-                "Reply saved to DB"
+                f"Processed as {category}"
             )
 
     except Exception as e:
         db.rollback()
 
-        state = monitor_agent(
-            state, db,
-            "reply_agent",
+        monitor_agent(
             "error",
-            f"DB save failed: {str(e)}"
+            str(e)
         )
+    end = time.perf_counter()
 
+    print(
+        f"✉️ Reply Agent: {round(end-start,2)}s"
+    )
     return state

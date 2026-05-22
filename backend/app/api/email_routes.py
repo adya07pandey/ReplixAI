@@ -3,7 +3,7 @@ from fastapi import APIRouter, Request, BackgroundTasks, HTTPException, Depends,
 from sqlalchemy.orm import Session
 import base64, json, os, requests
 from jose import jwt
-import time
+import time 
 from app.database.db import SessionLocal,get_db
 from app.database.models import Org, Email, ProcessedEmail, CategoryEnum
 from app.workflows.workflow import app
@@ -40,19 +40,16 @@ def start_gmail_watch(org, db: Session):
         timeout=10
     )
 
-    print("📡 WATCH STATUS:", response.status_code)
-    print("📡 WATCH RESPONSE:", response.text)
 
     return response.json()
 
 def get_current_org(request: Request):
-    print("COOKIES:", request.cookies)
     token = request.cookies.get("access_token")
     if not token:
         raise HTTPException(status_code=401, detail="Not authenticated")
 
     payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-    print("JWT payload:", payload)
+  
     return payload["org_id"]
 
 # ------------------ TOKEN ------------------ #
@@ -89,7 +86,6 @@ async def process_gmail_event(email: str, history_id: str):
 
     try:
         email = email.lower().strip()
-        print(f"\n⚙️ Processing webhook for: {email}")
 
         org = db.query(Org).filter(Org.email == email).first()
 
@@ -98,17 +94,14 @@ async def process_gmail_event(email: str, history_id: str):
             return
 
         # ✅ duplicate webhook check
-        if str(history_id) == str(org.gmail_history_id):
-            print("⚠️ Duplicate webhook skipped")
+        if int(history_id) <= int(org.gmail_history_id):
             return
-
         access_token = get_valid_access_token(org, db)
 
         # ✅ FIRST TIME SETUP
         if not org.gmail_history_id:
             org.gmail_history_id = history_id
             db.commit()
-            print("⚡ First history stored")
             return
 
         # ✅ IMPORTANT FIX: store old history BEFORE updating
@@ -130,8 +123,6 @@ async def process_gmail_event(email: str, history_id: str):
         res = requests.get(url, headers=headers, params=params, timeout=10)
 
         if res.status_code != 200:
-            print("⚠️ Token expired → refreshing")
-
             access_token = refresh_access_token(org.gmail_refresh_token)
             org.gmail_access_token = access_token
             db.commit()
@@ -142,7 +133,6 @@ async def process_gmail_event(email: str, history_id: str):
         history_data = res.json()
 
         if "history" not in history_data:
-            print("📭 No new emails")
             return
 
         seen_messages = set()
@@ -155,8 +145,6 @@ async def process_gmail_event(email: str, history_id: str):
                 msg_id = msg["message"]["id"]
                 thread_id = msg["message"]["threadId"]
 
-                print(f"🔍 Checking msg_id={msg_id}, thread_id={thread_id}")
-
                 if msg_id in seen_messages:
                     continue
                 seen_messages.add(msg_id)
@@ -168,11 +156,12 @@ async def process_gmail_event(email: str, history_id: str):
                 ).first()
 
                 if exists:
-                    print(f"⚠️ Skipping already processed message: {msg_id}")
                     continue   
 
                
                 msg_url = f"https://gmail.googleapis.com/gmail/v1/users/me/messages/{msg_id}"
+                
+                fetch_start = time.perf_counter()
 
                 msg_res = requests.get(
                     msg_url,
@@ -183,7 +172,11 @@ async def process_gmail_event(email: str, history_id: str):
                     },
                     timeout=10
                 )
+                fetch_end = time.perf_counter()
 
+                print(
+                    f"📥 Gmail Fetch: {round(fetch_end-fetch_start,2)}s"
+                )
                 if msg_res.status_code != 200:
                     print("❌ Message fetch failed:", msg_res.text)
                     continue
@@ -230,35 +223,35 @@ async def process_gmail_event(email: str, history_id: str):
                     sender_body=email_body,
                     status="pending"
                 )
-
                 db.add(new_email)
                 db.commit()
+              
                 db.refresh(new_email)
 
                 # ------------------ WORKFLOW ------------------ #
-                start_time = time.perf_counter()
+                workflow_start = time.perf_counter()
+                result = await asyncio.to_thread(
+                    app.invoke,
+                    {
+                        "org_id": org.id,
+                        "email_id": new_email.id,
+                        "email_obj": new_email,
+                        "email_body": email_body,
+                        "sender_name": sender_name,
+                        "sender_email": sender_email,
+                        "subject": subject
+                    }
+                )
 
-                result = app.invoke({
-                    "org_id": org.id,
-                    "email_id": new_email.id,
-                    "email_body": email_body.strip(),
-                    "sender_name": sender_name,
-                    "sender_email": sender_email,
-                    "subject": subject.strip()
-                })
-
-                end_time = time.perf_counter()
-
-                latency = round(end_time - start_time, 2)
+                workflow_end = time.perf_counter()
 
                 print("\n------------------------------")
                 print(f"📧 Subject  : {subject}")
                 print(f"📂 Category : {result.get('category')}")
-                print(f"⚡ Latency  : {latency}s")
+                print(f"🤖 Workflow: {round(workflow_end-workflow_start,2)}s")
                 print("------------------------------")
 
-                # print("\n🤖 WORKFLOW RESULT:", result)
-                
+              
                 await manager.broadcast({
                         "event": "new_email",
                         "org_id": org.id,
@@ -272,8 +265,6 @@ async def process_gmail_event(email: str, history_id: str):
                     org_id=org.id
                 ))
                 db.commit()
-
-        print("✅ Processing complete")
 
     except Exception as e:
         print("❌ Background Error:", e)
@@ -295,7 +286,6 @@ async def websocket_endpoint(websocket: WebSocket):
 # ------------------ WEBHOOK ------------------ #
 @router.post("/gmail/webhook")
 async def gmail_webhook(request: Request, background_tasks: BackgroundTasks):
-    print("\n🔔 WEBHOOK HIT")
 
     try:
         raw_body = await request.body()
@@ -305,8 +295,6 @@ async def gmail_webhook(request: Request, background_tasks: BackgroundTasks):
             return {"status": "empty"}
 
         body = json.loads(raw_body)
-
-        print("📦 BODY:", body)
 
         if "message" not in body:
             return {"status": "ignored"}
@@ -318,9 +306,6 @@ async def gmail_webhook(request: Request, background_tasks: BackgroundTasks):
 
         email = data.get("emailAddress")
         history_id = data.get("historyId")
-
-        print("📩 Email:", email)
-        print("📌 HistoryId:", history_id)
 
         if not email or not history_id:
             return {"status": "invalid"}
@@ -415,13 +400,14 @@ async def process_message_by_id(msg_id, thread_id, org, db, headers):
     )
 
     db.add(new_email)
-    db.commit()
+    db.commit()        
     db.refresh(new_email)
 
     # 🔹 workflow
     result = app.invoke({
         "org_id": org.id,
         "email_id": new_email.id,
+        "email_obj": new_email,
         "email_body": email_body,
         "sender_name": sender_name,
         "sender_email": sender_email,
@@ -488,7 +474,6 @@ async def openMail(
     ).first()
     if not data:
         raise HTTPException(status_code=404, detail="Email not found")
-    print(data)
     return data
 
 @router.put("/{email_id}")

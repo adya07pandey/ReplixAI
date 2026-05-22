@@ -10,6 +10,7 @@ from app.database.models import (
 )
 from app.agents.monitor_agent import monitor_agent
 from app.services.structured_llm_services import smart_email_llm
+import time
 
 PROMPT = """
 You are an ecommerce email AI system.
@@ -41,14 +42,7 @@ Body:
 
 
 def smart_email_agent(state, db):
-
-    state = monitor_agent(
-        state,
-        db,
-        "smart_email_agent",
-        "start",
-        "Processing email"
-    )
+    start = time.perf_counter()
 
     try:
         subject = state["subject"]
@@ -83,9 +77,7 @@ def smart_email_agent(state, db):
         state["category"] = category
         state["extracted"] = data
 
-        email = db.query(Email).filter(
-            Email.id == state["email_id"]
-        ).first()
+        email = state["email_obj"]
 
         if email:
             try:
@@ -93,7 +85,7 @@ def smart_email_agent(state, db):
             except:
                 email.category = CategoryEnum.others
 
-            db.commit()
+        
 
         org_id = state["org_id"]
         email_id = state["email_id"]
@@ -162,15 +154,12 @@ def smart_email_agent(state, db):
 
         if obj:
             db.add(obj)
-            db.commit()
+        
+        db.commit()
 
-        state = monitor_agent(
-            state,
-            db,
-            "smart_email_agent",
+        monitor_agent(
             "success",
-            f"Processed as {category}",
-            data=data
+            f"Processed as {category}"
         )
 
     except Exception as e:
@@ -179,12 +168,13 @@ def smart_email_agent(state, db):
 
         state["category"] = "others"
 
-        state = monitor_agent(
-            state,
-            db,
-            "smart_email_agent",
+        monitor_agent(
             "error",
             str(e)
         )
+    end = time.perf_counter()
 
+    print(
+        f"🧠 Smart Email Agent: {round(end-start,2)}s"
+    )
     return state

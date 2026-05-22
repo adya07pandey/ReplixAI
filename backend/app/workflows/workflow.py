@@ -1,7 +1,7 @@
 from typing import TypedDict
 from langgraph.graph import StateGraph, END
 from app.database.db import get_db
-
+from app.database.models import Email
 from app.agents.smart_email_agent import smart_email_agent
 from app.agents.reply_agent import generate_reply
 
@@ -25,7 +25,7 @@ class WorkflowState(TypedDict, total=False):
 
     org_id: int
     email_id: int
-
+    email_obj: Email
     email_body: str
     sender_name: str | None
     sender_email: str | None
