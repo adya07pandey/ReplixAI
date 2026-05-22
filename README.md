@@ -78,6 +78,64 @@ The architecture was optimized from a **5-agent workflow** to a **lightweight 2-
 
 ---
 
+---
+
+## Example: Smart Email Agent Workflow
+
+### Incoming Email
+
+```text
+Subject: Refund not received for Order ORD1023
+
+Body:
+Hi Team,
+
+I requested a refund for my laptop purchase last week,
+but I still haven't received the amount in my bank account.
+
+Please help.
+
+Thanks,
+Rahul
+```
+
+### Smart Email Agent Output
+
+The Smart Email Agent performs:
+- Email Classification
+- Structured Data Extraction
+- Ticket/Data Creation
+
+### Extracted Structured Data
+
+```json
+{
+  "category": "refund_request",
+  "order_id": "ORD1023",
+  "reason": "Refund not received",
+  "customer_email": "rahul@gmail.com"
+}
+```
+
+### Database Ticket Creation
+
+The extracted information is automatically stored as a structured refund request ticket:
+
+```text
+RefundRequest
+├── order_id: ORD1023
+├── customer_email: rahul@gmail.com
+├── reason: Refund not received
+└── org_id: 1
+```
+
+### Next Workflow Step
+
+The Reply Agent then:
+- Retrieves refund policy context
+- Generates a professional AI response
+- Stores the generated reply in database
+
 ## How It Works
 
 1. User connects Gmail using Google OAuth
