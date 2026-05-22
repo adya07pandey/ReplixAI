@@ -137,6 +137,20 @@ Body: {body}
 """
 
 def db_agent(state, db):
+    category = state["category"]
+
+    if category in ["general", "others"]:
+
+        state = monitor_agent(
+            state,
+            db,
+            "db_agent",
+            "info",
+            f"No DB extraction needed for {category}"
+        )
+
+        return state
+    
     llm = ChatGroq(
         model="llama-3.1-8b-instant",
         temperature=0
