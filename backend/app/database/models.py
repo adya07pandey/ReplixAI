@@ -5,6 +5,9 @@ from datetime import datetime
 import enum
 
 from app.database.db import Base
+from pgvector.sqlalchemy import Vector
+import uuid
+
 
 
 class ModeEnum(str, enum.Enum):
@@ -49,6 +52,27 @@ class StatusEnum(str,enum.Enum):
     rejected = "rejected"
     sent = "sent"
 
+
+class PolicyEmbedding(Base):
+    __tablename__ = "policy_embeddings"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+
+    org_id = Column(
+        Integer,
+        ForeignKey("organizations.id"),
+        index=True
+    )
+
+    chunk_text = Column(Text, nullable=False)
+
+    embedding = Column(Vector(384))
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    org = relationship("Org", backref="policy_embeddings")
+
+    
 class Email(Base):
     __tablename__ = "mails"
 

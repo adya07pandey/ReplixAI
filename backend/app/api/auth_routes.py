@@ -1,5 +1,3 @@
-import sys
-print("Python path:", sys.path)
 from fastapi import APIRouter, Form,File,UploadFile,Depends, HTTPException,Request
 from fastapi.responses import JSONResponse
 from app.schemas.org_schema import OrgLogin
@@ -80,7 +78,6 @@ async def signup(
         email=email,
         password=password_hash
     )
-    print(new_org)
     db.add(new_org)
     db.commit()
     db.refresh(new_org)
@@ -94,13 +91,13 @@ async def signup(
     })
 
     response.set_cookie(
-    key="access_token",
-    value=token,
-    httponly=True,
-    samesite="none",  
-    secure=True,       
-    path="/"
-)
+        key="access_token",
+        value=token,
+        httponly=True,
+        samesite="none",  
+        secure=True,       
+        path="/"
+    )
 
     return response
 
