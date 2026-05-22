@@ -12,6 +12,7 @@ from datetime import datetime, timedelta
 import os
 from fastapi import Request
 from jose import jwt
+
 router = APIRouter(
     prefix="/auth/google",
     tags=["Email Automation"]
@@ -48,7 +49,12 @@ def start_gmail_watch(access_token):
         "labelIds": ["INBOX"]
     }
 
-    response = requests.post(url, headers=headers, json=data)
+    response = requests.post(
+        url,
+        headers=headers,
+        json=data,
+        timeout=10
+    )
 
     return response.json()
 
@@ -64,7 +70,7 @@ def connect_gmail(
         "client_id": GOOGLE_CLIENT_ID,
         "redirect_uri": GOOGLE_REDIRECT_URI,
         "response_type": "code",
-        "scope": "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send",
+        "scope": "https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/gmail.send",
         "access_type": "offline",
         "prompt": "consent",
         "state": org_id
@@ -105,15 +111,28 @@ def google_callback(
         raise HTTPException(status_code=404, detail="Organization not found")
 
     org.gmail_access_token = access_token
+
     if refresh_token:
         org.gmail_refresh_token = refresh_token
+
     org.gmail_connected = True
-    
+
     watch = start_gmail_watch(access_token)
-  
+
+    print("WATCH RESPONSE:", watch)
+
+    if "historyId" not in watch:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Gmail watch failed: {watch}"
+        )
+
     org.gmail_history_id = watch["historyId"]
-    expiry = datetime.utcnow() + timedelta(days=7)
-    org.gmail_watch_expiry = expiry
+
+    org.gmail_watch_expiry = datetime.fromtimestamp(
+        int(watch["expiration"]) / 1000
+    )
+
     db.commit()
 
     return RedirectResponse("https://replix-ai-one.vercel.app/dashboard")

@@ -3,12 +3,16 @@ from fastapi import APIRouter, Request, BackgroundTasks, HTTPException, Depends,
 from sqlalchemy.orm import Session
 import base64, json, os, requests
 from jose import jwt
+import time
 from app.database.db import SessionLocal,get_db
 from app.database.models import Org, Email, ProcessedEmail, CategoryEnum
 from app.workflows.workflow import app
 from app.services.ws_services import manager
 from email.utils import parseaddr
 import asyncio
+from email.mime.text import MIMEText
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
 
 router = APIRouter(
     prefix="/emails",
@@ -17,6 +21,29 @@ router = APIRouter(
 SECRET_KEY = os.getenv("JWT_SECRET")
 ALGORITHM = os.getenv("JWT_ALGORITHM")
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+
+def start_gmail_watch(org, db: Session):
+    access_token = get_valid_access_token(org, db)
+
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json"
+    }
+
+    response = requests.post(
+        "https://gmail.googleapis.com/gmail/v1/users/me/watch",
+        headers=headers,
+        json={
+            "topicName": "projects/gmail-api-project-489812/topics/gmail-email-events",
+            "labelIds": ["INBOX"]
+        },
+        timeout=10
+    )
+
+    print("📡 WATCH STATUS:", response.status_code)
+    print("📡 WATCH RESPONSE:", response.text)
+
+    return response.json()
 
 def get_current_org(request: Request):
     print("COOKIES:", request.cookies)
@@ -164,7 +191,7 @@ async def process_gmail_event(email: str, history_id: str):
                     continue
 
                 msg_data = msg_res.json()
-                labelIds = msg["message"].get("labelIds", [])
+                labelIds = msg_data.get("labelIds", [])
 
                 if "INBOX" not in labelIds:
                     continue
@@ -211,6 +238,8 @@ async def process_gmail_event(email: str, history_id: str):
                 db.refresh(new_email)
 
                 # ------------------ WORKFLOW ------------------ #
+                start_time = time.perf_counter()
+
                 result = app.invoke({
                     "org_id": org.id,
                     "email_id": new_email.id,
@@ -219,6 +248,12 @@ async def process_gmail_event(email: str, history_id: str):
                     "sender_email": sender_email,
                     "subject": subject
                 })
+
+                end_time = time.perf_counter()
+
+                latency = round(end_time - start_time, 2)
+
+                print(f"⚡ Reply generation latency: {latency}s")
 
                 print("\n🤖 WORKFLOW RESULT:", result)
                 
@@ -253,36 +288,52 @@ async def websocket_endpoint(websocket: WebSocket):
             await websocket.receive_text()
     except:
         manager.disconnect(websocket)
+
+
 # ------------------ WEBHOOK ------------------ #
 @router.post("/gmail/webhook")
 async def gmail_webhook(request: Request, background_tasks: BackgroundTasks):
     print("\n🔔 WEBHOOK HIT")
 
     try:
-        body = await request.json()
-    except Exception as e:
-        print("⚠️ Body read failed:", e)
-        return {"status": "ignored"}
+        raw_body = await request.body()
 
-    try:
+        if not raw_body:
+            print("⚠️ Empty body")
+            return {"status": "empty"}
+
+        body = json.loads(raw_body)
+
+        print("📦 BODY:", body)
+
+        if "message" not in body:
+            return {"status": "ignored"}
+
         message_data = body["message"]["data"]
+
         decoded = base64.b64decode(message_data).decode("utf-8")
         data = json.loads(decoded)
 
-        email = data["emailAddress"]
-        history_id = data["historyId"]
+        email = data.get("emailAddress")
+        history_id = data.get("historyId")
 
         print("📩 Email:", email)
         print("📌 HistoryId:", history_id)
 
-        # ✅ SAFE BACKGROUND CALL (NO DB PASSED)
-        background_tasks.add_task(process_gmail_event, email, history_id)
+        if not email or not history_id:
+            return {"status": "invalid"}
+
+        background_tasks.add_task(
+            process_gmail_event,
+            email,
+            history_id
+        )
+
+        return {"status": "accepted"}
 
     except Exception as e:
         print("❌ Webhook Error:", e)
-
-    return {"status": "accepted"}
-
+        return {"status": "error"}
 
 async def poll_recent_emails(org, db):
     access_token = get_valid_access_token(org, db)
@@ -416,7 +467,10 @@ async def get_emails(
     # if not model:
     #     raise HTTPException(status_code=400, detail="Invalid category")
 
-    data = db.query(Email).filter(Email.category == category).all()
+    data = db.query(Email).filter(
+        Email.category == category,
+        Email.org_id == org_id
+    ).all()
     return data
 
 
@@ -448,10 +502,7 @@ def update_email(email_id: int, data: dict, db: Session = Depends(get_db)):
     db.commit()
     return {"message": "Updated"}
 
-import base64
-from email.mime.text import MIMEText
-from google.oauth2.credentials import Credentials
-from googleapiclient.discovery import build
+
 
 def get_gmail_service(org, db):
     access_token = get_valid_access_token(org, db)
@@ -465,6 +516,7 @@ def get_gmail_service(org, db):
     )
 
     return build("gmail", "v1", credentials=creds)
+
 def send_gmail_message(org, db, to, subject, body):
     service = get_gmail_service(org, db)
 
@@ -478,6 +530,7 @@ def send_gmail_message(org, db, to, subject, body):
         userId="me",
         body={"raw": raw}
     ).execute()
+
 
 @router.post("/send/{email_id}")
 def send_email(email_id: int, db: Session = Depends(get_db)):
