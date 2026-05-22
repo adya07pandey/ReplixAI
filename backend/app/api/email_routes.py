@@ -118,7 +118,6 @@ async def process_gmail_event(email: str, history_id: str):
         org.gmail_history_id = history_id
         db.commit()
 
-        # ------------------ FETCH HISTORY ------------------ #
         url = "https://gmail.googleapis.com/gmail/v1/users/me/history"
 
         params = {
@@ -141,7 +140,6 @@ async def process_gmail_event(email: str, history_id: str):
             res = requests.get(url, headers=headers, params=params, timeout=10)
 
         history_data = res.json()
-        print("📊 History:", history_data)
 
         if "history" not in history_data:
             print("📭 No new emails")
@@ -163,7 +161,7 @@ async def process_gmail_event(email: str, history_id: str):
                     continue
                 seen_messages.add(msg_id)
 
-                # ✅ CORRECT idempotency check
+              
                 exists = db.query(ProcessedEmail).filter_by(
                     message_id=msg_id,
                     org_id=org.id
@@ -171,9 +169,9 @@ async def process_gmail_event(email: str, history_id: str):
 
                 if exists:
                     print(f"⚠️ Skipping already processed message: {msg_id}")
-                    continue   # ✅ FIXED (was return)
+                    continue   
 
-                # ------------------ FETCH MESSAGE ------------------ #
+               
                 msg_url = f"https://gmail.googleapis.com/gmail/v1/users/me/messages/{msg_id}"
 
                 msg_res = requests.get(
@@ -209,10 +207,10 @@ async def process_gmail_event(email: str, history_id: str):
                     "Unknown"
                 )
 
-                # extract sender
+              
                 sender_name, sender_email = parseaddr(raw_sender)
 
-                # ✅ skip emails sent by org itself
+             
                 if sender_email.lower() == org.email.lower():
                     print("⏭ Skipping self email")
                     continue
@@ -253,9 +251,13 @@ async def process_gmail_event(email: str, history_id: str):
 
                 latency = round(end_time - start_time, 2)
 
-                print(f"⚡ Reply generation latency: {latency}s")
+                print("\n------------------------------")
+                print(f"📧 Subject  : {subject}")
+                print(f"📂 Category : {result.get('category')}")
+                print(f"⚡ Latency  : {latency}s")
+                print("------------------------------")
 
-                print("\n🤖 WORKFLOW RESULT:", result)
+                # print("\n🤖 WORKFLOW RESULT:", result)
                 
                 await manager.broadcast({
                         "event": "new_email",

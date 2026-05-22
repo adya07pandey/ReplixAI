@@ -96,7 +96,7 @@ class Email(Base):
     status = Column(Enum(StatusEnum), default=StatusEnum.pending)
 
     gmail_message_id = Column(String, unique=True, index=True)
-    gmail_thread_id = Column(String, index=True)  # 🔥 ADD THIS
+    gmail_thread_id = Column(String, index=True)  
     is_replied = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
