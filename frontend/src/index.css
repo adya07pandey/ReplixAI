@@ -556,7 +556,7 @@ h3{
 }
 .reply textarea{
   width: 100%;
-  height: 100%;
+  height: 300px;
   background: none;
   color: black;
   resize: none;

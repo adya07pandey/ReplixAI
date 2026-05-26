@@ -105,7 +105,7 @@ export const Category = ({ category, emails }) => {
 
                                     {isEditing ? (
                                         <>
-                                            {/* EDIT MODE */}
+                                     
                                             <input
                                                 className="subject"
                                                 value={selectedMail.reply_subject || ""}
@@ -134,7 +134,7 @@ export const Category = ({ category, emails }) => {
                                         </>
                                     ) : (
                                         <>
-                                            {/* VIEW MODE */}
+                                           
 
                                             <p className="subject">{selectedMail.reply_subject}</p>
 
@@ -190,7 +190,6 @@ export const Category = ({ category, emails }) => {
                 </div>
             ) : (
 
-                /* ✅ OTHERWISE → SHOW LIST */
                 <>
                     <div className="searchbox">
                         <h3>{categoryLabels[category]} Mails</h3>
@@ -207,7 +206,7 @@ export const Category = ({ category, emails }) => {
                             <p>No emails</p>
                         ) : (
                             <>
-                                {/* 🔥 PENDING */}
+                               
                                 {pendingEmails.length > 0 && (
                                     <>
                                         <h4 className="section-title">Pending</h4>
@@ -227,7 +226,7 @@ export const Category = ({ category, emails }) => {
                                     </>
                                 )}
 
-                                {/* 🔽 SENT */}
+                              
                                 {sentEmails.length > 0 && (
                                     <>
                                         <h4 className="section-title sent-title">Sent</h4>
