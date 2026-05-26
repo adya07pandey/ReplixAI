@@ -113,7 +113,7 @@ def get_dashboard(
 
     category_response = [
         {
-            "category": cat.value,
+            "category": cat.value if cat else "general",
             "total": total_count,
             "sent": sent_count,
             "percent": int((sent_count / total_count) * 100) if total_count > 0 else 0

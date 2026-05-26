@@ -238,7 +238,7 @@ export const DashboardHome = () => {
                             {data.category_response.map((item, i) => (
                                 <div key={i} className="cat-row">
                                     <div className="cat-header">
-                                        <span>{categoryLabels[item.category]}</span>
+                                        <span>{categoryLabels[item.category] || "General"}</span>
                                         <span>{item.percent}%</span>
                                     </div>
 
