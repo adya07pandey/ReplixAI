@@ -18,6 +18,12 @@ An AI-powered email automation platform that integrates with Gmail to automatica
 
 ---
 
+## System Architecture
+
+![System Architecture](screenshots/system_architecture.png)
+
+---
+
 ## AI Workflow Architecture
 
 The system uses a lightweight AI workflow orchestrated using LangGraph.
